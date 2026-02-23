@@ -20,6 +20,7 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	private Timer movement;
 	private RandomGenerator rgen;
 	public static int numTimes = 0;
+	public static int score = 0;
 	public static final int SIZE = 25;
 	public static final int SPEED = 2;
 	public static final int MS = 50;
@@ -31,8 +32,8 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 		rgen = RandomGenerator.getInstance();
 		balls = new ArrayList<GOval>();
 		enemies = new ArrayList<GRect>();
-		
-		text = new GLabel(""+enemies.size(), 0, WINDOW_HEIGHT);
+
+		text = new GLabel("Survival Time: " + numTimes + ", Enemies Active: " + enemies.size() + ", Enemies Destroyed: " + score, 0, WINDOW_HEIGHT);
 		add(text);
 		
 		movement = new Timer(MS, this);
@@ -44,6 +45,13 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 		if (numTimes % 40 == 0) addAnEnemy();
 		moveAllBallsOnce();
 		moveAllEnemiesOnce();
+		if (enemies.size() > MAX_ENEMIES) {
+			((Timer) e.getSource()).stop();
+			clear();
+			GLabel text = new GLabel("You Lost!", 150, 300);
+			text.setColor(Color.RED);
+			add(text);
+		}
 		numTimes++;
 	}
 	
@@ -72,7 +80,7 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 	private void addAnEnemy() {
 		GRect e = makeEnemy(rgen.nextInt(0, WINDOW_HEIGHT-SIZE/2));
 		enemies.add(e);
-		text.setLabel("" + enemies.size());
+		updateLabel();
 		add(e);
 	}
 	
@@ -87,11 +95,18 @@ public class DodgeBall extends GraphicsProgram implements ActionListener {
 		for(GOval ball:balls) {
 			ball.move(SPEED, 0);
 			if (getElementAt(ball.getX() + SIZE, ball.getY() + SIZE/2) instanceof GRect rect) {
+				score++;
 				remove(rect);
 				enemies.remove(rect);
+				updateLabel();
 			}
 		}
 	}
+
+	private void updateLabel() {
+		text.setLabel("Survival Time: " + numTimes + ", Enemies Active: " + enemies.size() + ", Enemies Destroyed: " + score);
+	}
+
 	private void moveAllEnemiesOnce() {
 		for (GRect enemy: enemies) {
 			enemy.move(0, rgen.nextInt(-2, 2));
